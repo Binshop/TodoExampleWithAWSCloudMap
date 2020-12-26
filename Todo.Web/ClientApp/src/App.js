@@ -2,10 +2,10 @@ import React, { Component } from 'react';
 import { Route } from 'react-router';
 import { Layout } from './components/Layouts/Layout';
 import { Home } from './components/Home';
-import { TodoList } from './components/TodoList';
+import { TodoList } from './components/Todo/TodoList';
 import { Counter } from './components/Counter';
 
-import './custom.css'
+import './style.css'
 
 export default class App extends Component {
   static displayName = App.name;
