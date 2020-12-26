@@ -1,11 +1,8 @@
 import React, { Component } from 'react';
 import { Route } from 'react-router';
-import { Layout } from './components/Layouts/Layout';
+import { Layout } from './components/layouts/Layout';
 import { Home } from './components/Home';
-import { TodoList } from './components/Todo/TodoList';
-import { Counter } from './components/Counter';
-
-import './style.css'
+import { TodoList } from './components/todo/TodoList';
 
 export default class App extends Component {
   static displayName = App.name;
@@ -14,7 +11,6 @@ export default class App extends Component {
     return (
       <Layout>
         <Route exact path='/' component={Home} />
-        <Route path='/counter' component={Counter} />
         <Route path='/todos' component={TodoList} />
       </Layout>
     );

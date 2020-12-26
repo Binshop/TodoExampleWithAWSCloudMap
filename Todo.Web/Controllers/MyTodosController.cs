@@ -78,9 +78,9 @@ namespace Todo.Web.Controllers
             {
                 Owner = "Demo",
             };
-            mytodos.Todos.Add(new TodoItem { Id = Guid.NewGuid(), Task = "Create a Demo App for AWS Cloud Map." });
-            mytodos.Todos.Add(new TodoItem { Id = Guid.NewGuid(), Task = "Show the Demo." });
+            mytodos.Todos.Add(new TodoItem { Id = Guid.NewGuid(), Task = "Create a Demo App." });
             mytodos.Todos.Add(new TodoItem { Id = Guid.NewGuid(), Task = "Prepare the PPT." });
+            mytodos.Todos.Add(new TodoItem { Id = Guid.NewGuid(), Task = "Show the Demo." });
             return mytodos;
         }
     }

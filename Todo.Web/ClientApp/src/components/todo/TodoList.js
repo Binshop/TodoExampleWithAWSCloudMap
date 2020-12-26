@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { UncontrolledAlert, Spinner } from "reactstrap";
+
 import { TodoItem } from "./TodoItem";
 
 const API_URL_TODO = "api/mytodos";
@@ -12,6 +14,7 @@ export class TodoList extends Component {
             todoList: { owner: "", todos: [] },
             loading: true,
             newTask: "",
+            error: null,
         };
         this.toggleCompletion = this.toggleCompletion.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -26,17 +29,15 @@ export class TodoList extends Component {
         const newTodos = [...this.state.todoList.todos];
         const todo = newTodos.find((x) => x.id === id);
         todo.completed = !todo.completed;
-        this.update(todo).then((todo) => {
-            this.setState(todo);
-        });
+        this.update(todo);
     }
 
     handleSubmit(event) {
-        this.create({ task: this.state.newTask }).then((todo) => {
-            const todos = [...this.state.todoList.todos, todo];
-            this.setState(todos);
-        });
         event.preventDefault();
+        const task = this.state.newTask;
+        if (task === "") return;
+        const todo = { task: task };
+        this.create(todo);
     }
 
     handleChange(event) {
@@ -60,12 +61,16 @@ export class TodoList extends Component {
 
     render() {
         let contents = this.state.loading ? (
-            <p>
-                <em>Loading...</em>
-            </p>
+            <Spinner type="grow" color="danger" />
         ) : (
             this.renderTodosTable(this.state.todoList.todos)
         );
+
+        let notifications = this.state.error ? (
+            <UncontrolledAlert color="danger">
+                {this.state.error}
+            </UncontrolledAlert>
+        ) : null;
 
         return (
             <div>
@@ -89,19 +94,28 @@ export class TodoList extends Component {
                         </button>
                     </div>
                 </form>
+                {notifications}
                 {contents}
             </div>
         );
     }
 
     async populateData() {
-        this.setState({ loading: true });
+        this.setState({ loading: true, error: null });
         const response = await fetch(API_URL_TODO);
-        const data = await response.json();
-        this.setState({ todoList: data, loading: false });
+
+        if (response.ok) {
+            const data = await response.json();
+            this.setState({ todoList: data, loading: false });
+        } else {
+            this.setState({
+                error: `error status: ${response.status} ${response.statusText}`,
+            });
+        }
     }
 
     async create(todo) {
+        this.setState({ loading: true, error: null });
         const response = await fetch(API_URL_TODO, {
             body: JSON.stringify(todo),
             headers: {
@@ -109,10 +123,21 @@ export class TodoList extends Component {
             },
             method: "POST",
         });
-        return response.json();
+
+        if (response.ok) {
+            const todo = await response.json();
+            const todos = [...this.state.todoList.todos, todo];
+            this.setState({ todoList: { todos: todos } });
+        } else {
+            this.setState({
+                error: `error status: ${response.status} ${response.statusText}`,
+            });
+        }
+        this.setState({ loading: false });
     }
 
     async update(todo) {
+        this.setState({ loading: true, error: null });
         const response = await fetch(API_URL_TODO, {
             body: JSON.stringify(todo),
             headers: {
@@ -120,6 +145,15 @@ export class TodoList extends Component {
             },
             method: "PUT",
         });
-        return response.json();
+
+        if (response.ok) {
+            const todo = await response.json();
+            this.setState(todo);
+        } else {
+            this.setState({
+                error: `error status: ${response.status} ${response.statusText}`,
+            });
+        }
+        this.setState({ loading: false });
     }
 }

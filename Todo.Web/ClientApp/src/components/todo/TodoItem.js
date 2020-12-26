@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 
 export class TodoItem extends Component {
+    static displayName = TodoItem.name;
+
     constructor(props) {
         super(props);
         this.state = { todo: this.props.todo };
@@ -9,16 +11,15 @@ export class TodoItem extends Component {
 
     toggleCompletion() {
         const todo = this.state.todo;
-        console.log(
-            `Change the completion status: ${
-                todo.completed
-            } -> ${!todo.completed}`
-        );
         this.props.onCompletionChange(todo.id);
     }
 
     render() {
         const todo = this.state.todo;
+        let date = todo.dueDate ? (
+            <small>{new Date(todo.dueDate).toLocaleString()}</small>
+        ) : null;
+
         return (
             <div className="d-flex w-100 justify-content-between">
                 <input
@@ -28,17 +29,8 @@ export class TodoItem extends Component {
                     onChange={this.toggleCompletion}
                 />
                 <h5 className="mb-1">{todo.task}</h5>
-                <small>{TodoItem.formatDate(todo.dueDate)}</small>
+                {date}
             </div>
         );
-    }
-
-    static formatDate(date) {
-        let formatedDate = "";
-        if (date) {
-            const newDate = new Date(date);
-            formatedDate = newDate.toLocaleString();
-        }
-        return formatedDate;
     }
 }
