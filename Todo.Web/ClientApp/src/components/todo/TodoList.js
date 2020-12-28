@@ -11,7 +11,7 @@ export class TodoList extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            todoList: { owner: "", todos: [] },
+            todos: [],
             loading: true,
             newTask: "",
             error: null,
@@ -26,7 +26,7 @@ export class TodoList extends Component {
     }
 
     toggleCompletion(id) {
-        const newTodos = [...this.state.todoList.todos];
+        const newTodos = [...this.state.todos];
         const todo = newTodos.find((x) => x.id === id);
         todo.completed = !todo.completed;
         this.update(todo);
@@ -63,7 +63,7 @@ export class TodoList extends Component {
         let contents = this.state.loading ? (
             <Spinner type="grow" color="danger" />
         ) : (
-            this.renderTodosTable(this.state.todoList.todos)
+            this.renderTodosTable(this.state.todos)
         );
 
         let notifications = this.state.error ? (
@@ -106,7 +106,7 @@ export class TodoList extends Component {
 
         if (response.ok) {
             const data = await response.json();
-            this.setState({ todoList: data, loading: false });
+            this.setState({ todos: data, loading: false });
         } else {
             this.setState({
                 error: `error status: ${response.status} ${response.statusText}`,
@@ -126,8 +126,8 @@ export class TodoList extends Component {
 
         if (response.ok) {
             const todo = await response.json();
-            const todos = [...this.state.todoList.todos, todo];
-            this.setState({ todoList: { todos: todos } });
+            const todos = [...this.state.todos, todo];
+            this.setState({ todos: todos });
         } else {
             this.setState({
                 error: `error status: ${response.status} ${response.statusText}`,

@@ -1,4 +1,10 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System;
+using Todo.WebApi.Data;
 
 namespace Todo.WebApi
 {
@@ -24,8 +30,35 @@ namespace Todo.WebApi
         /// <param name="builder"></param>
         protected override void Init(IWebHostBuilder builder)
         {
-            builder
-                .UseStartup<Startup>();
+            builder.UseStartup<Startup>();
+        }
+
+        /// <summary>
+        /// Use this override to customize the services registered with the IHostBuilder. 
+        /// 
+        /// It is recommended not to call ConfigureWebHostDefaults to configure the IWebHostBuilder inside this method.
+        /// Instead customize the IWebHostBuilder in the Init(IWebHostBuilder) overload.
+        /// </summary>
+        /// <param name="builder"></param>
+        protected override void Init(IHostBuilder builder)
+        {
+            var host = builder.Build();
+            using var scope = host.Services.CreateScope();
+            var sp = scope.ServiceProvider;
+            var logger = sp.GetRequiredService<ILoggerFactory>()
+                           .CreateLogger<LambdaEntryPoint>();
+            try
+            {
+                logger.LogInformation("Migrate databases...");
+
+                var todoContext = sp.GetRequiredService<TodoContext>();
+                todoContext.Database.Migrate();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while migrating the DB.");
+            }
         }
     }
+
 }
