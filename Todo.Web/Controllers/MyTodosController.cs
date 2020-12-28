@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
@@ -10,6 +11,7 @@ using Todo.DTOs;
 
 namespace Todo.Web.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     public class MyTodosController : ControllerBase
     {
