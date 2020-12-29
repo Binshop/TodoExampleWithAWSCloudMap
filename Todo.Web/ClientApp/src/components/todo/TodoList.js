@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { UncontrolledAlert, Spinner } from "reactstrap";
 
-import authService from "../api-authorization/AuthorizeService";
 import { TodoItem } from "./TodoItem";
 
 const API_URL_TODO = "api/mytodos";
@@ -12,9 +11,10 @@ export class TodoList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      todos: [],
       loading: true,
+      canSubmit: true,
       newTask: "",
+      todos: [],
       error: null,
     };
     this.toggleCompletion = this.toggleCompletion.bind(this);
@@ -35,10 +35,12 @@ export class TodoList extends Component {
 
   handleSubmit(event) {
     event.preventDefault();
+    this.setState({ canSubmit: false });
     const task = this.state.newTask;
     if (task === "") return;
     const todo = { task: task };
     this.create(todo);
+    this.setState({ newTask: "", canSubmit: true });
   }
 
   handleChange(event) {
@@ -84,6 +86,7 @@ export class TodoList extends Component {
             <button
               type="submit"
               className="btn btn-primary mb-3"
+              disabled={!this.state.canSubmit}
               onClick={this.handleSubmit}
             >
               ADD
@@ -98,10 +101,7 @@ export class TodoList extends Component {
 
   async populateData() {
     this.setState({ loading: true, error: null });
-    const token = await authService.getAccessToken();
-    const response = await fetch(API_URL_TODO, {
-      headers: !token ? {} : { Authorization: `Bearer ${token}` },
-    });
+    const response = await fetch(API_URL_TODO);
 
     if (response.ok) {
       const data = await response.json();
@@ -115,15 +115,9 @@ export class TodoList extends Component {
 
   async create(todo) {
     this.setState({ loading: true, error: null });
-    const token = await authService.getAccessToken();
     const response = await fetch(API_URL_TODO, {
       body: JSON.stringify(todo),
-      headers: !token
-        ? { "Content-Type": "application/json" }
-        : {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+      headers: { "Content-Type": "application/json" },
       method: "POST",
     });
 
@@ -141,15 +135,9 @@ export class TodoList extends Component {
 
   async update(todo) {
     this.setState({ loading: true, error: null });
-    const token = await authService.getAccessToken();
     const response = await fetch(API_URL_TODO, {
       body: JSON.stringify(todo),
-      headers: !token
-        ? { "Content-Type": "application/json" }
-        : {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+      headers: { "Content-Type": "application/json" },
       method: "PUT",
     });
 
