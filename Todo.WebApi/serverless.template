@@ -1,47 +1,61 @@
 {
-  "AWSTemplateFormatVersion": "2010-09-09",
-  "Transform": "AWS::Serverless-2016-10-31",
-  "Description": "An AWS Serverless Application that uses the ASP.NET Core framework running in Amazon Lambda.",
-  "Parameters": {},
-  "Conditions": {},
-  "Resources": {
-    "AspNetCoreFunction": {
-      "Type": "AWS::Serverless::Function",
-      "Properties": {
-        "Handler": "TodoApi::TodoApi.LambdaEntryPoint::FunctionHandlerAsync",
-        "Runtime": "dotnetcore3.1",
-        "CodeUri": "",
-        "MemorySize": 256,
-        "Timeout": 30,
-        "Role": null,
-        "Policies": [
-          "AWSLambdaFullAccess"
-        ],
-        "Events": {
-          "ProxyResource": {
-            "Type": "Api",
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Description": "Backend service for Todo APP.",
+    "Parameters": {},
+    "Conditions": {},
+    "Resources": {
+        "TodoBackend": {
+            "Type": "AWS::Serverless::Function",
             "Properties": {
-              "Path": "/{proxy+}",
-              "Method": "ANY"
+                "Handler": "TodoApi::TodoApi.LambdaEntryPoint::FunctionHandlerAsync",
+                "Runtime": "dotnetcore3.1",
+                "MemorySize": 256,
+                "Timeout": 30,
+                "Policies": [
+                    "AWSLambdaFullAccess"
+                ],
+                "Events": {
+                    "ProxyResource": {
+                        "Type": "Api",
+                        "Properties": {
+                            "Path": "/{proxy+}",
+                            "Method": "ANY"
+                        }
+                    },
+                    "RootResource": {
+                        "Type": "Api",
+                        "Properties": {
+                            "Path": "/",
+                            "Method": "ANY"
+                        }
+                    }
+                }
             }
-          },
-          "RootResource": {
-            "Type": "Api",
+        },
+        "TodoApi": {
+            "Type": "AWS::ServiceDiscovery::Instance",
             "Properties": {
-              "Path": "/",
-              "Method": "ANY"
+                "InstanceAttributes": {
+                    "color": "green",
+                    "region": {
+                        "Fn::Sub": "${AWS::Region}"
+                    },
+                    "stage": "beta",
+                    "endpoint": {
+                        "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+                    }
+                },
+                "ServiceId": "srv-kkyqi2j32fgtldkv"
             }
-          }
         }
-      }
+    },
+    "Outputs": {
+        "ApiURL": {
+            "Description": "API endpoint URL for Prod environment",
+            "Value": {
+                "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+            }
+        }
     }
-  },
-  "Outputs": {
-    "ApiURL": {
-      "Description": "API endpoint URL for Prod environment",
-      "Value": {
-        "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-      }
-    }
-  }
 }

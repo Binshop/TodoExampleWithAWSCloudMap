@@ -9,7 +9,9 @@
   "region": "ap-southeast-2",
   "configuration": "Release",
   "framework": "netcoreapp3.1",
-  "s3-prefix": "TodoApi/",
+  "s3-bucket": "todo",
+  "s3-prefix": "todo-api/",
+  "stack-name": "sam-todo-api",
   "template": "serverless.template",
   "template-parameters": ""
 }

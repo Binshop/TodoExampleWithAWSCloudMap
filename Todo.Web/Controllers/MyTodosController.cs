@@ -1,3 +1,5 @@
+using Amazon.ServiceDiscovery;
+using Amazon.ServiceDiscovery.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -16,16 +18,18 @@ namespace Todo.Web.Controllers
     public class MyTodosController : ControllerBase
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IAmazonServiceDiscovery _serviceDiscovery;
 
-        public MyTodosController(IHttpClientFactory httpClientFactory)
+        public MyTodosController(IHttpClientFactory httpClientFactory, IAmazonServiceDiscovery serviceDiscovery)
         {
             _httpClientFactory = httpClientFactory;
+            _serviceDiscovery = serviceDiscovery;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var response = await SendAsync(HttpMethod.Get, null);
+            var response = await SendAsync(HttpMethod.Get);
 
             if (response.IsSuccessStatusCode)
             {
@@ -89,20 +93,24 @@ namespace Todo.Web.Controllers
             return StatusCode((int)response.StatusCode);
         }
 
-        private async Task<HttpResponseMessage> SendAsync(HttpMethod method, TodoItemDto todo)
+        private async Task<HttpResponseMessage> SendAsync(HttpMethod method, TodoItemDto todo = default)
         {
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
 
-            var request = BuildRequest(method, todo);
+            var request = await BuildRequestAsync(method, todo);
             return await client.SendAsync(request);
         }
 
-        private HttpRequestMessage BuildRequest(HttpMethod method, TodoItemDto todo)
+        private async Task<HttpRequestMessage> BuildRequestAsync(HttpMethod method, TodoItemDto todo = default)
         {
-            var endpoint = todo?.Id > 0 ? $"{ServiceEndPoint}/api/todos/{todo.Id}"
-                                        : $"{ServiceEndPoint}/api/todos";
+            var host = await GetApiHostAsync();
+            var endpoint = $"{host.TrimEnd('/')}/api/todos";
+            if (todo?.Id > 0)
+            {
+                endpoint = $"{endpoint}/{todo.Id}";
+            }
 
             var requestUri = new Uri(endpoint);
 
@@ -122,6 +130,22 @@ namespace Todo.Web.Controllers
             return request;
         }
 
-        private string ServiceEndPoint => "https://localhost:44302";
+        private async Task<string> GetApiHostAsync()
+        {
+            var response = await _serviceDiscovery.DiscoverInstancesAsync(new DiscoverInstancesRequest
+            {
+                NamespaceName = Constants.NAMESPACE_NAME,
+                ServiceName = Constants.SERVICE_NAME_BACK_END,
+            });
+
+            if (response.Instances.Count <= 0)
+            {
+                throw new Exception("No backend service instance found.");
+            }
+
+            var instance = response.Instances[0];
+
+            return instance.Attributes["endpoint"];
+        }
     }
 }
