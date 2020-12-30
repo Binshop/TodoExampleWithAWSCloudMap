@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 
 namespace Todo.WebApi
 {
@@ -26,13 +25,6 @@ namespace Todo.WebApi
         protected override void Init(IWebHostBuilder builder)
         {
             builder.UseStartup<Startup>();
-        }
-
-        protected override void PostCreateHost(IHost webHost)
-        {
-            base.PostCreateHost(webHost);
-
-            webHost.MigrateDatabase();
         }
     }
 

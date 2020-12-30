@@ -1,8 +1,10 @@
+using System;
+
 namespace Todo.DTOs
 {
     public class TodoItemDto
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         public string Task { get; set; }
 

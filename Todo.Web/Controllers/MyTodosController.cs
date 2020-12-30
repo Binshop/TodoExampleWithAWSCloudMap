@@ -38,10 +38,10 @@ namespace Todo.Web.Controllers
             return StatusCode((int)response.StatusCode);
         }
 
-        [HttpGet("{id:long}")]
-        public async Task<IActionResult> GetByIdAsync(long id)
+        [HttpGet("{id:Guid}")]
+        public async Task<IActionResult> GetByIdAsync(Guid id)
         {
-            if (id <= 0)
+            if (id == Guid.Empty)
             {
                 return BadRequest();
             }
@@ -60,7 +60,7 @@ namespace Todo.Web.Controllers
         [HttpPut]
         public async Task<IActionResult> PutAsync([FromBody] TodoItemDto todo)
         {
-            if (todo.Id <= 0)
+            if (todo.Id == Guid.Empty)
             {
                 return BadRequest();
             }
@@ -91,7 +91,7 @@ namespace Todo.Web.Controllers
             return StatusCode((int)response.StatusCode);
         }
 
-        private async Task<HttpResponseMessage> SendAsync(HttpMethod method, TodoItemDto todo = default)
+        private async Task<HttpResponseMessage> SendAsync(HttpMethod method, TodoItemDto todo = null)
         {
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Accept.Clear();
@@ -101,11 +101,11 @@ namespace Todo.Web.Controllers
             return await client.SendAsync(request);
         }
 
-        private async Task<HttpRequestMessage> BuildRequestAsync(HttpMethod method, TodoItemDto todo = default)
+        private async Task<HttpRequestMessage> BuildRequestAsync(HttpMethod method, TodoItemDto todo)
         {
             var host = await GetApiHostAsync();
             var endpoint = $"{host.TrimEnd('/')}/api/todos";
-            if (todo?.Id > 0)
+            if (todo != null && todo.Id != Guid.Empty)
             {
                 endpoint = $"{endpoint}/{todo.Id}";
             }
