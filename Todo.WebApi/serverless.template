@@ -2,13 +2,11 @@
     "AWSTemplateFormatVersion": "2010-09-09",
     "Transform": "AWS::Serverless-2016-10-31",
     "Description": "Backend service for Todo APP.",
-    "Parameters": {},
-    "Conditions": {},
     "Resources": {
         "TodoBackend": {
             "Type": "AWS::Serverless::Function",
             "Properties": {
-                "Handler": "TodoApi::TodoApi.LambdaEntryPoint::FunctionHandlerAsync",
+                "Handler": "Todo.WebApi::Todo.WebApi.LambdaEntryPoint::FunctionHandlerAsync",
                 "Runtime": "dotnetcore3.1",
                 "MemorySize": 256,
                 "Timeout": 30,
@@ -48,7 +46,7 @@
                         "AttributeType": "S"
                     },
                     {
-                        "AttributeName": "Task",
+                        "AttributeName": "Created",
                         "AttributeType": "S"
                     }
                 ],
