@@ -143,7 +143,7 @@ namespace Todo.Web.Controllers
 
             var instance = response.Instances[0];
 
-            return instance.Attributes["endpoint"];
+            return instance.Attributes["TODO_ENDPOINT"];
         }
     }
 }
