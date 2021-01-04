@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Frontend of the demo app for cloud map service discovery
+
+Resources:
+  FunctionTodoWeb:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: TodoWeb
+      Handler: Todo.Web::Todo.Web.LambdaEntryPoint::FunctionHandlerAsync
+      Runtime: dotnetcore3.1
+      MemorySize: 256
+      Timeout: 30
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - servicediscovery:GetInstance
+          - servicediscovery:GetInstancesHealthStatus
+          - servicediscovery:GetNamespace
+          - servicediscovery:GetOperation
+          - servicediscovery:GetService
+          - servicediscovery:ListInstances
+          - servicediscovery:ListNamespaces
+          - servicediscovery:ListOperations
+          - servicediscovery:ListServices
+          - servicediscovery:DiscoverInstances
+          Resource: "*"
+      Events:
+        Root:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+        ApiProxy:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+  TodoWeb:
+    Type: AWS::ServiceDiscovery::Instance
+    Properties:
+      InstanceAttributes:
+        TODO_STAGE: Prod
+        TODO_VERSION: v1
+        TODO_REGION: !Ref 'AWS::Region'
+        TODO_ENDPOINT: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod
+      ServiceId: srv-slpheaedaxefyxn7
+
+Outputs:
+  Endpoint:
+    Description: 'Endpoint of the App frontend'
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod

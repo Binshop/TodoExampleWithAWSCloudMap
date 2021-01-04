@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Backend of the demo app for cloud map service discovery
+
+Resources:
+  FunctionTodoApi:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: TodoApi
+      Handler: Todo.WebApi::Todo.WebApi.LambdaEntryPoint::FunctionHandlerAsync
+      Runtime: dotnetcore3.1
+      MemorySize: 256
+      Timeout: 30
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamodbTodoItem
+      Events:
+        Root:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+        ApiProxy:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+  DynamodbTodoItem:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: TodoItem
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: S
+        - AttributeName: Created
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+        - AttributeName: Created
+          KeyType: RANGE
+      Tags:
+        - Key: eway:app
+          Value: todo backend
+  TodoApi:
+    Type: AWS::ServiceDiscovery::Instance
+    Properties:
+      InstanceAttributes:
+        TODO_VERSION: v1
+        TODO_STAGE: Prod
+        TODO_REGION: !Ref 'AWS::Region'
+        TODO_ENDPOINT: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod
+      ServiceId: srv-kkyqi2j32fgtldkv
+
+Outputs:
+  Endpoint:
+    Description: 'Endpoint of the App backend'
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod

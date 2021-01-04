@@ -1,6 +1,7 @@
 using Amazon.ServiceDiscovery;
 using Amazon.ServiceDiscovery.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Net.Http;
@@ -15,11 +16,15 @@ namespace Todo.Web.Controllers
     [Route("api/[controller]")]
     public class MyTodosController : ControllerBase
     {
+        private readonly ILogger<MyTodosController> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IAmazonServiceDiscovery _serviceDiscovery;
 
-        public MyTodosController(IHttpClientFactory httpClientFactory, IAmazonServiceDiscovery serviceDiscovery)
+        public MyTodosController(ILogger<MyTodosController> logger,
+                                 IHttpClientFactory httpClientFactory,
+                                 IAmazonServiceDiscovery serviceDiscovery)
         {
+            _logger = logger;
             _httpClientFactory = httpClientFactory;
             _serviceDiscovery = serviceDiscovery;
         }
@@ -104,6 +109,7 @@ namespace Todo.Web.Controllers
         private async Task<HttpRequestMessage> BuildRequestAsync(HttpMethod method, TodoItemDto todo)
         {
             var host = await GetApiHostAsync();
+
             var endpoint = $"{host.TrimEnd('/')}/api/todos";
             if (todo != null && todo.Id != Guid.Empty)
             {
@@ -138,7 +144,8 @@ namespace Todo.Web.Controllers
 
             if (response.Instances.Count <= 0)
             {
-                throw new Exception("No backend service instance found.");
+                _logger.LogWarning("No backend service instance found.");
+                return string.Empty;
             }
 
             var instance = response.Instances[0];
